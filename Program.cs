@@ -348,7 +348,26 @@ namespace LinqGyakorlo
         // 20. Union, Intersect, Except a "kiváló" (átlag >= 4.5) és "budapesti" hallgatók nevei között.
         static void Feladat20()
         {
-            //TODO
+            var kivalo = SampleData.Students
+                .Where(s => s.GradeAverage >= 4.5)
+                .Select(s => s.Name);
+
+            var budapesti = SampleData.Students
+                .Where(s => s.City == "Budapest")
+                .Select(s => s.Name);
+
+            var union = kivalo.Union(budapesti).ToList();
+            var intersect = kivalo.Intersect(budapesti).ToList();
+            var except = kivalo.Except(budapesti).ToList();
+
+            Console.WriteLine("Union:");
+            foreach (var name in union) Console.WriteLine(name);
+
+            Console.WriteLine("\nIntersect:");
+            foreach (var name in intersect) Console.WriteLine(name);
+
+            Console.WriteLine("\nExcept (kiváló \\ budapesti):");
+            foreach (var name in except) Console.WriteLine(name);
         }
 
         // 21. Concat: Matematika + Informatika kurzusnevek.
@@ -449,7 +468,26 @@ namespace LinqGyakorlo
         //     majd egy olyan eset kipróbálása try-catch-csel, ahol több találat van.
         static void Feladat29()
         {
-            //TODO
+            try
+            {
+                var single = SampleData.Students.Single(s => s.Name == "Lakatos Kata");
+                Console.WriteLine($"Talált egyet: {single}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Hiba a Single használatakor: {ex.Message}");
+            }
+
+            // Példa több találatra: deliberate exception
+            try
+            {
+                var multiple = SampleData.Students.Single(s => s.Name.Contains("a"));
+                Console.WriteLine($"Ez nem fog kinézni: {multiple}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Várt kivétel több találatnál: {ex.Message}");
+            }
         }
 
         // 30. A 3. indexű (0-tól) hallgató (ElementAt).
@@ -566,7 +604,23 @@ namespace LinqGyakorlo
         // 40. Nem létező kurzushoz tartozó beiratkozások, DefaultIfEmpty kezeléssel.
         static void Feladat40()
         {
-           
+            // Left-join enrollments to courses and use DefaultIfEmpty to handle missing courses
+            var qry = from e in SampleData.Enrollments
+                      join c in SampleData.Courses on e.CourseId equals c.Id into gj
+                      from c in gj.DefaultIfEmpty()
+                      select new { Enrollment = e, Course = c };
+
+            foreach (var item in qry)
+            {
+                if (item.Course == null)
+                {
+                    Console.WriteLine($"Enrollment for missing course: {item.Enrollment}");
+                }
+                else
+                {
+                    Console.WriteLine($"{item.Enrollment} -> Course: {item.Course.Name}");
+                }
+            }
         }
     }
 }
